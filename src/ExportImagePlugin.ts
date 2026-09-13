@@ -40,7 +40,7 @@ type FsPromisesModule = {
 
 const fileFormats = new Set<FileFormat>(['png0', 'png1', 'jpg', 'pdf', 'webp']);
 const resolutionModes = new Set<ResolutionMode>(['1x', '2x', '3x', '4x']);
-const splitModes = new Set<SplitMode>(['none', 'fixed', 'hr', 'auto']);
+const splitModes = new Set<SplitMode>(['none', 'fixed', 'hr', 'auto', 'paragraph', 'delimiter']);
 
 function getPathModule(): PathModule {
   // eslint-disable-next-line import/no-nodejs-modules, @typescript-eslint/no-require-imports
@@ -96,12 +96,25 @@ function validateCliSettings(settings: ISettings): void {
 }
 
 export default class ExportImagePlugin extends Plugin {
-  settings: ISettings;
+  declare settings: ISettings;
+
+  private async persistPreviewSettings(settings: ISettings): Promise<void> {
+    this.settings = settings;
+    await this.saveSettings();
+  }
 
   async exportFile(file: TFile) {
     const frontmatter = getMetadata(file, this.app);
     const markdown = await this.app.vault.cachedRead(file);
-    await exportImage(this.app, this.settings, markdown, file, frontmatter, 'file');
+    await exportImage(
+      this.app,
+      this.settings,
+      markdown,
+      file,
+      frontmatter,
+      'file',
+      settings => this.persistPreviewSettings(settings),
+    );
   }
 
   private getCliSettings(options: DeepPartial<ISettings> | undefined): ISettings {
@@ -215,6 +228,7 @@ export default class ExportImagePlugin extends Plugin {
           settings.split.mode,
           file.basename,
           settings.assetMark,
+          settings.split.delimiter,
         );
 
       const bytes = new Uint8Array(await blob.arrayBuffer());
@@ -265,8 +279,8 @@ export default class ExportImagePlugin extends Plugin {
     );
 
     this.registerEvent(
-      this.app.workspace.on('editor-menu', (menu, editor) => {
-        const file = editor.editorComponent?.file ?? this.app.workspace.getActiveFile();
+      this.app.workspace.on('editor-menu', (menu, editor, info) => {
+        const file = info.file ?? this.app.workspace.getActiveFile();
         if (!file || !isMarkdownFile(file)) {
           return;
         }
@@ -285,6 +299,7 @@ export default class ExportImagePlugin extends Plugin {
                   file,
                   frontmatter,
                   'selection',
+                  settings => this.persistPreviewSettings(settings),
                 ),
               );
           });
@@ -302,6 +317,7 @@ export default class ExportImagePlugin extends Plugin {
                 file,
                 frontmatter,
                 'file',
+                settings => this.persistPreviewSettings(settings),
               ),
             );
         });
@@ -334,6 +350,7 @@ export default class ExportImagePlugin extends Plugin {
               activeFile,
               frontmatter,
               'file',
+              settings => this.persistPreviewSettings(settings),
             );
           })();
         }
@@ -363,6 +380,7 @@ export default class ExportImagePlugin extends Plugin {
             file,
             frontmatter,
             'selection',
+            settings => this.persistPreviewSettings(settings),
           );
         }
         return true;

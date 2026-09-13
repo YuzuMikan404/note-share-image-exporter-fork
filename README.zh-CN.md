@@ -1,6 +1,6 @@
 # Note Share Image Exporter
 
-[English](README.md) | 中文
+[English](README.md) | [日本語](README.ja.md) | 中文
 
 将 Obsidian 笔记、选中文本和文件夹导出为便于分享的图片或 PDF，并支持实时预览、长图拆分、水印和作者信息。
 
@@ -19,9 +19,14 @@ Note Share Image Exporter 会尽量保留 Obsidian 的渲染结果，因此导�
 ## 功能
 
 - 将笔记导出为 PNG、JPG、WebP 或 PDF。
+- 桌面端和移动端都可以直接保存到当前 vault。
+- 保存路径留空时保存到源笔记同目录，也可以指定 vault 相对路径。
+- 多图片导出会在目标目录下创建以笔记命名的子文件夹。
 - 在格式支持时，直接从导出预览复制图片。
 - 导出前实时预览宽度、内边距、格式、分辨率、水印和作者信息等效果。
-- 使用固定高度、水平分割线或按段落自动拆分长笔记。
+- 使用固定高度、水平分割线、自动分页、每段一张图或自定义分隔符拆分长笔记。
+- 固定高度分页会尽量避开文字行中间，减少文字被截断。
+- 保存并重复使用导出预设；默认提供面向手机阅读的 1080 x 2000 预设。
 - 为分享图片添加文本水印或图片水印。
 - 在导出图片像素中嵌入隐藏资产标识**(隐水印)**，便于后续匹配。
 - 在导出图片中添加作者名、附加文本、头像，并设置对齐方式和显示位置。
@@ -101,8 +106,8 @@ obsidian vault="My Vault" eval code="typeof app.plugins.plugins['note-share-imag
 
 ## 平台说明
 
-- 在桌面端，保存的导出结果会作为文件下载。
-- 在移动端，保存的导出结果会写入当前 vault。
+- 在桌面端和移动端，预览窗口中的保存操作都会把结果写入当前 vault。
+- 保存路径为空时写入源笔记所在目录；多图片导出写入以笔记名命名的子目录。
 - 是否支持复制到剪贴板取决于输出格式和平台；无法复制时请保存文件。
 - `exportFileToPath()` 仅支持桌面端，因为它需要写入本地绝对文件路径。
 
@@ -114,9 +119,12 @@ obsidian vault="My Vault" eval code="typeof app.plugins.plugins['note-share-imag
 
 ### 手动安装
 
-1. 从 release 下载 `main.js`、`manifest.json` 和 `styles.css`。
+1. 从 [最新 release](https://github.com/YuzuMikan404/note-share-image-exporter-fork/releases/latest) 下载 `main.js`、`manifest.json` 和 `styles.css`，或下载 ZIP 后解压。
 2. 将它们放入 `<Vault>/.obsidian/plugins/note-share-image-exporter/`。
-3. 在 **Settings** -> **Community plugins** 中启用 **Note Share Image Exporter**。
+3. 重启 Obsidian 或重新加载插件。
+4. 在 **Settings** -> **Community plugins** 中启用 **Note Share Image Exporter**。
+
+更新时下载新 release 中的这三个文件并覆盖旧文件，然后重新加载插件即可。
 
 ## 隐私和网络请求
 

@@ -91,6 +91,12 @@ export const createSettingConfig = async (app: App): Promise<FormSchema<ISetting
       type: 'boolean',
     },
     {
+      path: 'exportFolder',
+      label: 'エクスポート先 / Export folder',
+      desc: '空欄なら元ノートと同じフォルダに保存します。Vault ルートからの相対パスも指定できます。',
+      type: 'string',
+    },
+    {
       path: 'authorInfo.show',
       label: L.setting.userInfo.show(),
       type: 'boolean',
@@ -235,6 +241,8 @@ export const createSettingConfig = async (app: App): Promise<FormSchema<ISetting
         { value: 'fixed', text: L.setting.split.mode.fixed() },
         { value: 'hr', text: L.setting.split.mode.hr() },
         { value: 'auto', text: L.setting.split.mode.auto() },
+        { value: 'paragraph', text: '段落ごと / Paragraphs' },
+        { value: 'delimiter', text: '指定区切り / Custom delimiter' },
       ],
     },
     {
@@ -242,7 +250,7 @@ export const createSettingConfig = async (app: App): Promise<FormSchema<ISetting
       label: L.setting.split.height.label(),
       desc: L.setting.split.height.description(),
       type: 'number',
-      when: (settings) => settings.split.mode !== 'none' && settings.split.mode !== 'hr',
+      when: (settings) => settings.split.mode === 'fixed' || settings.split.mode === 'auto',
     },
     {
       path: 'split.overlap',
@@ -250,6 +258,13 @@ export const createSettingConfig = async (app: App): Promise<FormSchema<ISetting
       desc: L.setting.split.overlap.description(),
       type: 'number',
       when: (settings) => settings.split.mode === 'fixed',
+    },
+    {
+      path: 'split.delimiter',
+      label: '区切り文字 / Delimiter',
+      desc: '例: ---。この区切りごとに別画像へ分けます。',
+      type: 'string',
+      when: (settings) => settings.split.mode === 'delimiter',
     },
     {
       path: 'showMetadata',

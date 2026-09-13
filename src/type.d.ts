@@ -1,5 +1,26 @@
 declare type FileFormat = 'png0' | 'png1' | 'jpg' | 'pdf' | 'webp';
 
+declare type ExportPreset = {
+  id: string;
+  name: string;
+  width: number;
+  resolutionMode: ResolutionMode;
+  format: FileFormat;
+  padding: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+    unified?: boolean;
+  };
+  split: {
+    height: number;
+    overlap: number;
+    mode: SplitMode;
+    delimiter: string;
+  };
+};
+
  
 declare type ISettings = {
   width?: number;
@@ -9,6 +30,8 @@ declare type ISettings = {
   showMetadata: boolean;
   recursive: boolean;
   quickExportSelection: boolean;
+  exportFolder: string;
+  presets: ExportPreset[];
   padding: {
     top: number;
     right: number;
@@ -51,6 +74,7 @@ declare type ISettings = {
     height: number;
     overlap: number;
     mode: SplitMode;
+    delimiter: string;
   };
 };
 
@@ -148,6 +172,6 @@ declare type MetadataType =
   | 'tags'
   | 'aliases';
 
-declare type SplitMode = 'none' | 'fixed' | 'hr' | 'auto';
+declare type SplitMode = 'none' | 'fixed' | 'hr' | 'auto' | 'paragraph' | 'delimiter';
 
 declare type ResolutionMode = '1x' | '2x' | '3x' | '4x';

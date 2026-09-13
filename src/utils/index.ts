@@ -95,13 +95,18 @@ const metadataTypes = new Set<MetadataType>([
   'aliases',
 ]);
 
-function isMetadataType(type: string): type is MetadataType {
-  return metadataTypes.has(type as MetadataType);
+function isMetadataType(type: unknown): type is MetadataType {
+  return typeof type === 'string' && metadataTypes.has(type as MetadataType);
 }
 
 export function getMetadataMap(app: App): Record<string, { type: MetadataType }> {
+  const metadataCache = app.metadataCache as typeof app.metadataCache & {
+    getAllPropertyInfos?: () => Record<string, { type?: unknown }>;
+  };
+  const propertyInfos = metadataCache.getAllPropertyInfos?.() ?? {};
+
   return Object.fromEntries(
-    Object.entries(app.metadataCache.getAllPropertyInfos()).map(([name, info]) => [
+    Object.entries(propertyInfos).map(([name, info]) => [
       name,
       { type: isMetadataType(info.type) ? info.type : 'text' },
     ]),

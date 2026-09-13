@@ -8,6 +8,7 @@ import {
   MarkdownRenderer,
   Modal,
   Notice,
+  Platform,
   type TFile,
 } from 'obsidian';
 import { createRoot } from 'react-dom/client';
@@ -42,6 +43,7 @@ export default async function (
   file: TFile,
   frontmatter: FrontMatterCache | undefined,
   type: 'file' | 'selection',
+  onPersistSettings?: (settings: ISettings) => Promise<void>,
 ) {
   const el = activeDocument.createElement('div');
   const skipConfig = type === 'selection' && settings.quickExportSelection;
@@ -68,7 +70,12 @@ export default async function (
         <Target
           isProcessing={true}
           markdownEl={el}
-          setting={{ ...settings, showMetadata: false, showFilename: false, split: { overlap: 0, height: 0, mode: 'none' } }}
+          setting={{
+            ...settings,
+            showMetadata: false,
+            showFilename: false,
+            split: { overlap: 0, height: 0, mode: 'none', delimiter: settings.split.delimiter },
+          }}
           frontmatter={undefined}
           title={file.basename}
           metadataMap={{}}
@@ -94,8 +101,9 @@ export default async function (
     const modal = new Modal(app);
     modal.setTitle(L.imageExportPreview());
     modal.modalEl.setCssStyles({
-      width: '85vw',
-      maxWidth: '1500px',
+      width: Platform.isMobile ? '100vw' : '85vw',
+      maxWidth: Platform.isMobile ? '100vw' : '1500px',
+      height: Platform.isMobile ? '100vh' : undefined,
     });
     modal.open();
     const root = createRoot(modal.contentEl);
@@ -110,7 +118,9 @@ export default async function (
         title={file.basename}
         metadataMap={metadataMap}
         app={app}
+        sourcePath={file.path}
         modalContainerEl={modal.containerEl}
+        onPersistSettings={onPersistSettings}
       />,
     );
 

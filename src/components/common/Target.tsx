@@ -76,7 +76,7 @@ const Target = forwardRef<
 
     let elements;
     if (rootRef.current) {
-      elements = getElementMeasures(rootRef.current, setting.split.mode);
+      elements = getElementMeasures(rootRef.current, setting.split.mode, setting.split.delimiter);
     }
 
     const lines = calculateSplitLines({
@@ -87,7 +87,7 @@ const Target = forwardRef<
     }, elements);
 
     return lines;
-  }, [setting.split.height, setting.split.overlap, setting.split.mode, rootHeight]);
+  }, [setting.split.height, setting.split.overlap, setting.split.mode, setting.split.delimiter, rootHeight]);
 
   useEffect(() => {
     onSplitChange?.(splitLines);

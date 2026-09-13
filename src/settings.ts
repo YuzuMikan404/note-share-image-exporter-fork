@@ -37,7 +37,7 @@ export function mergeSettings(
 }
 
 export const DEFAULT_SETTINGS: ISettings = {
-	width: 750,
+	width: 1080,
 	showFilename: true,
 
 	resolutionMode: "3x",
@@ -45,11 +45,34 @@ export const DEFAULT_SETTINGS: ISettings = {
 	showMetadata: false,
 	recursive: false,
 	quickExportSelection: false,
+	exportFolder: "",
+	presets: [
+		{
+			id: "mobile-long",
+			name: "Mobile long (1080 × 2000)",
+			width: 1080,
+			resolutionMode: "3x",
+			format: "png0",
+			padding: {
+				top: 32,
+				right: 32,
+				bottom: 32,
+				left: 32,
+				unified: true,
+			},
+			split: {
+				height: 2000,
+				overlap: 0,
+				mode: "auto",
+				delimiter: "---",
+			},
+		},
+	],
 	padding: {
-		top: 24,
-		right: 24,
-		bottom: 24,
-		left: 24,
+		top: 32,
+		right: 32,
+		bottom: 32,
+		left: 32,
 		unified: true,
 	},
 	authorInfo: {
@@ -80,9 +103,10 @@ export const DEFAULT_SETTINGS: ISettings = {
 		ownerId: "",
 	},
 	split: {
-		height: 1000,
-		overlap: 80,
-		mode: "none",
+		height: 2000,
+		overlap: 0,
+		mode: "auto",
+		delimiter: "---",
 	},
 };
 

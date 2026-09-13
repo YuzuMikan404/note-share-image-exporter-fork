@@ -11,7 +11,38 @@ import Target, { type TargetRef } from '../common/Target';
 import FormItems from '../common/form/FormItems';
 import { formatAvailable, getAvailableFormats } from 'src/settings';
 
-const getFormSchema = (settings: ISettings, availableFormats: FileFormat[]): FormSchema<ISettings> => [
+function featureText() {
+  const ja = activeDocument.documentElement.lang.toLowerCase().startsWith('ja');
+  return ja ? {
+    exportFolder: '保存先フォルダ（Vault相対）',
+    exportFolderDesc: '空欄なら元ノートと同じフォルダに保存します。複数枚はノート名のサブフォルダに保存します。',
+    paragraph: '段落ごとに1枚',
+    delimiter: '指定した区切りで分割',
+    delimiterLabel: 'エクスポート区切り',
+    delimiterDesc: '例: ---。区切り行そのものは出力から除外されます。',
+    preset: 'プリセット',
+    presetName: 'プリセット名',
+    apply: '適用',
+    savePreset: '現在の設定を保存',
+    deletePreset: '削除',
+  } : {
+    exportFolder: 'Export folder (vault-relative)',
+    exportFolderDesc: 'Leave blank to save beside the source note. Multi-image exports go into a note-named subfolder.',
+    paragraph: 'One image per paragraph',
+    delimiter: 'Split by custom delimiter',
+    delimiterLabel: 'Export delimiter',
+    delimiterDesc: 'Example: ---. The delimiter block itself is omitted from exported images.',
+    preset: 'Preset',
+    presetName: 'Preset name',
+    apply: 'Apply',
+    savePreset: 'Save current settings',
+    deletePreset: 'Delete',
+  };
+}
+
+const getFormSchema = (settings: ISettings, availableFormats: FileFormat[]): FormSchema<ISettings> => {
+  const text = featureText();
+  return [
   {
     label: L.includingFilename(),
     path: 'showFilename',
@@ -21,6 +52,12 @@ const getFormSchema = (settings: ISettings, availableFormats: FileFormat[]): For
     label: L.imageWidth(),
     path: 'width',
     type: 'number',
+  },
+  {
+    label: text.exportFolder,
+    desc: text.exportFolderDesc,
+    path: 'exportFolder',
+    type: 'string',
   },
   {
     label: L.setting.padding.unified(),
@@ -233,6 +270,8 @@ const getFormSchema = (settings: ISettings, availableFormats: FileFormat[]): For
       { text: L.setting.split.mode.fixed(), value: 'fixed' },
       { text: L.setting.split.mode.hr(), value: 'hr' },
       { text: L.setting.split.mode.auto(), value: 'auto' },
+      { text: text.paragraph, value: 'paragraph' },
+      { text: text.delimiter, value: 'delimiter' },
     ],
   },
   {
@@ -240,7 +279,7 @@ const getFormSchema = (settings: ISettings, availableFormats: FileFormat[]): For
     desc: L.setting.split.height.description(),
     label: L.setting.split.height.label(),
     type: 'number',
-    when: (settings) => settings.split.mode !== 'none' && settings.split.mode !== 'hr',
+    when: (settings) => settings.split.mode === 'fixed' || settings.split.mode === 'auto',
   },
   {
     path: 'split.overlap',
@@ -248,6 +287,13 @@ const getFormSchema = (settings: ISettings, availableFormats: FileFormat[]): For
     label: L.setting.split.overlap.label(),
     type: 'number',
     when: (settings) => settings.split.mode === 'fixed',
+  },
+  {
+    path: 'split.delimiter',
+    desc: text.delimiterDesc,
+    label: text.delimiterLabel,
+    type: 'string',
+    when: (settings) => settings.split.mode === 'delimiter',
   },
   {
     label: L.setting.metadata.label(),
@@ -266,7 +312,8 @@ const getFormSchema = (settings: ISettings, availableFormats: FileFormat[]): For
       { text: L.setting.format.pdf(), value: 'pdf' },
     ] satisfies Array<{ text: string; value: FileFormat }>).filter(({ value }) => availableFormats.includes(value)),
   },
-];
+  ];
+};
 
 interface Props {
   settings: ISettings;
@@ -275,14 +322,18 @@ interface Props {
   frontmatter: FrontMatterCache | undefined;
   metadataMap: Record<string, { type: MetadataType }>;
   title: string;
+  sourcePath: string;
   modalContainerEl: HTMLElement;
+  onPersistSettings?: (settings: ISettings) => Promise<void>;
 }
 
 const ModalContent: FC<Props> = ({
-  markdownEl, settings, frontmatter, metadataMap, title, app, modalContainerEl,
+  markdownEl, settings, frontmatter, metadataMap, title, sourcePath, app, modalContainerEl, onPersistSettings,
 }) => {
-  const [formData, setFormData] = useState<ISettings>(settings);
+  const [formData, setFormData] = useState<ISettings>(() => structuredClone(settings));
   const [availableFormats, setAvailableFormats] = useState<FileFormat[]>(formatAvailable);
+  const [presetName, setPresetName] = useState('');
+  const [selectedPresetId, setSelectedPresetId] = useState(settings.presets[0]?.id ?? '');
 
   useEffect(() => {
     let cancelled = false;
@@ -300,6 +351,50 @@ const ModalContent: FC<Props> = ({
     setFormData(syncUnifiedPadding(formData, newData));
   }, [formData]);
 
+  const applyPreset = useCallback(() => {
+    const preset = formData.presets.find(item => item.id === selectedPresetId);
+    if (!preset) return;
+    setFormData(current => ({
+      ...current,
+      width: preset.width,
+      resolutionMode: preset.resolutionMode,
+      format: preset.format,
+      padding: structuredClone(preset.padding),
+      split: structuredClone(preset.split),
+    }));
+  }, [formData.presets, selectedPresetId]);
+
+  const savePreset = useCallback(async () => {
+    const name = presetName.trim();
+    if (!name) return;
+    const preset: ExportPreset = {
+      id: `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name,
+      width: formData.width ?? 1080,
+      resolutionMode: formData.resolutionMode,
+      format: formData.format,
+      padding: structuredClone(formData.padding),
+      split: structuredClone(formData.split),
+    };
+    const presets = [...formData.presets, preset];
+    setFormData(current => ({ ...current, presets }));
+    setSelectedPresetId(preset.id);
+    setPresetName('');
+    if (onPersistSettings) {
+      await onPersistSettings({ ...settings, presets });
+    }
+  }, [formData, onPersistSettings, presetName, settings]);
+
+  const deletePreset = useCallback(async () => {
+    if (!selectedPresetId) return;
+    const presets = formData.presets.filter(item => item.id !== selectedPresetId);
+    setFormData(current => ({ ...current, presets }));
+    setSelectedPresetId(presets[0]?.id ?? '');
+    if (onPersistSettings) {
+      await onPersistSettings({ ...settings, presets });
+    }
+  }, [formData.presets, onPersistSettings, selectedPresetId, settings]);
+
   const root = useRef<TargetRef>(null);
   const [mainHeight, setMainHeight] = useState(0);
   const [isGrabbing, setIsGrabbing] = useState(false);
@@ -310,7 +405,9 @@ const ModalContent: FC<Props> = ({
     const calculateHeight = () => {
       const height = modalContainerEl.clientHeight;
       if (height) {
-        setMainHeight(height - 160);
+        setMainHeight(Platform.isMobile
+          ? Math.max(260, Math.min(420, Math.floor(height * 0.42)))
+          : height - 160);
       }
     };
 
@@ -426,15 +523,16 @@ const ModalContent: FC<Props> = ({
         title,
         formData.resolutionMode,
         formData.format,
-        Platform.isMobile,
         formData.assetMark,
+        sourcePath,
+        formData.exportFolder,
       );
     } catch {
       new Notice(L.saveFail());
     } finally {
       setProcessing(false);
     }
-  }, [root, formData.resolutionMode, formData.format, title, formData.width]);
+  }, [root, formData.resolutionMode, formData.format, formData.assetMark, formData.exportFolder, sourcePath, title, formData.width]);
   const handleCopy = useCallback(async () => {
     if (!hasValidExportWidth(formData)) {
       new Notice(L.invalidWidth());
@@ -471,13 +569,16 @@ const ModalContent: FC<Props> = ({
         app,
         title,
         formData.assetMark,
+        sourcePath,
+        formData.exportFolder,
+        formData.split.delimiter,
       );
     } catch {
       new Notice(L.saveFail());
     } finally {
       setProcessing(false);
     }
-  }, [root, formData.format, formData.resolutionMode, formData.split, app, title]);
+  }, [root, formData.format, formData.resolutionMode, formData.split, formData.assetMark, formData.exportFolder, app, sourcePath, title]);
 
   return (
     <div className='export-image-preview-root'>
@@ -545,16 +646,45 @@ const ModalContent: FC<Props> = ({
           <div className='info-text'>{L.guide()}</div>
         </div>
         <div className='export-image-preview-right'>
+          <div className='export-image-preset-panel'>
+            <div className='export-image-preset-row'>
+              <label>{featureText().preset}</label>
+              <select
+                value={selectedPresetId}
+                onChange={(event) => setSelectedPresetId(event.currentTarget.value)}
+              >
+                {formData.presets.map(preset => (
+                  <option key={preset.id} value={preset.id}>{preset.name}</option>
+                ))}
+              </select>
+              <button type='button' onClick={applyPreset} disabled={!selectedPresetId}>
+                {featureText().apply}
+              </button>
+              <button type='button' onClick={() => void deletePreset()} disabled={!selectedPresetId}>
+                {featureText().deletePreset}
+              </button>
+            </div>
+            <div className='export-image-preset-row'>
+              <input
+                value={presetName}
+                placeholder={featureText().presetName}
+                onChange={(event) => setPresetName(event.currentTarget.value)}
+              />
+              <button type='button' onClick={() => void savePreset()} disabled={!presetName.trim()}>
+                {featureText().savePreset}
+              </button>
+            </div>
+          </div>
           <FormItems
             formSchema={getFormSchema(formData, availableFormats)}
             update={handleUpdate}
             settings={formData}
             app={app}
           />
-          {formData.split.mode !== 'none' && formData.split.mode !== 'hr' && <div className='info-text'>
+          {(formData.split.mode === 'fixed' || formData.split.mode === 'auto') && <div className='info-text'>
             {L.splitInfo({ rootHeight, splitHeight: formData.split.height, pages })}
           </div>}
-          {formData.split.mode === 'hr' && <div className='info-text'>
+          {(formData.split.mode === 'hr' || formData.split.mode === 'paragraph' || formData.split.mode === 'delimiter') && <div className='info-text'>
             {L.splitInfoHr({ rootHeight, pages })}
           </div>}
           <div className='info-text'>{L.moreSetting()}</div>

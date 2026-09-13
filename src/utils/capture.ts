@@ -1,5 +1,5 @@
 import {
-  Notice, Platform, requestUrl, type App, type TFile,
+  normalizePath, Notice, requestUrl, type App, type TFile,
 } from 'obsidian';
 import { zipSync } from 'fflate';
 import JsPdf from 'jspdf';
@@ -22,20 +22,6 @@ type ExportBlobFile = {
   blob: Blob;
   filename: string;
 };
-
-function saveAs(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = activeDocument.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.setCssStyles({ display: 'none' });
-  activeDocument.body.appendChild(a);
-  a.click();
-  window.setTimeout(() => {
-    activeDocument.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 100);
-}
 
 function getSolidBackground(el: HTMLElement): string {
   const backgroundColor = getComputedStyle(el).backgroundColor;
@@ -117,8 +103,54 @@ async function makePdf(blob: Blob, el: HTMLElement) {
   return pdf;
 }
 
-async function saveToVault(app: App, blob: Blob, filename: string) {
-  const filePath = await app.fileManager.getAvailablePathForAttachment(filename);
+function sanitizeFilename(value: string): string {
+  return value.replaceAll(/[\\/:*?"<>|]/g, '_').replaceAll(/\s+/g, '_');
+}
+
+function getParentFolder(sourcePath: string): string {
+  const normalized = normalizePath(sourcePath);
+  const index = normalized.lastIndexOf('/');
+  return index >= 0 ? normalized.slice(0, index) : '';
+}
+
+function resolveExportFolder(sourcePath: string, exportFolder: string): string {
+  const requested = exportFolder.trim().replaceAll('\\', '/').replace(/^\/+|\/+$/g, '');
+  return requested ? normalizePath(requested) : getParentFolder(sourcePath);
+}
+
+function joinVaultPath(...parts: string[]): string {
+  const joined = parts.filter(Boolean).join('/');
+  return joined ? normalizePath(joined) : '';
+}
+
+async function ensureVaultFolder(app: App, folderPath: string): Promise<void> {
+  if (!folderPath) return;
+  const segments = normalizePath(folderPath).split('/').filter(Boolean);
+  let current = '';
+  for (const segment of segments) {
+    current = joinVaultPath(current, segment);
+    if (!await app.vault.adapter.exists(current)) {
+      await app.vault.createFolder(current);
+    }
+  }
+}
+
+function getAvailableVaultPath(app: App, folderPath: string, filename: string): string {
+  const dot = filename.lastIndexOf('.');
+  const stem = dot > 0 ? filename.slice(0, dot) : filename;
+  const extension = dot > 0 ? filename.slice(dot) : '';
+  let candidate = joinVaultPath(folderPath, filename);
+  let index = 1;
+  while (app.vault.getAbstractFileByPath(candidate)) {
+    candidate = joinVaultPath(folderPath, `${stem}_${index}${extension}`);
+    index++;
+  }
+  return candidate;
+}
+
+async function saveToVault(app: App, blob: Blob, folderPath: string, filename: string) {
+  await ensureVaultFolder(app, folderPath);
+  const filePath = getAvailableVaultPath(app, folderPath, filename);
   await app.vault.createBinary(filePath, await blob.arrayBuffer());
   return filePath;
 }
@@ -152,10 +184,11 @@ export async function createSplitExportFiles(
   splitMode: SplitMode,
   title: string,
   assetMark: ISettings['assetMark'],
+  delimiter = '---',
 ): Promise<ExportBlobFile[]> {
   try {
     const totalHeight = target.contentElement.clientHeight;
-    const elements = getElementMeasures(target.contentElement, splitMode);
+    const elements = getElementMeasures(target.contentElement, splitMode, delimiter);
 
     const splitPositions = calculateSplitPositions({
       mode: splitMode,
@@ -274,6 +307,7 @@ export async function createSplitExportBlob(
   splitMode: SplitMode,
   title: string,
   assetMark: ISettings['assetMark'],
+  delimiter = '---',
 ): Promise<Blob> {
   const files = await createSplitExportFiles(
     target,
@@ -284,6 +318,7 @@ export async function createSplitExportBlob(
     splitMode,
     title,
     assetMark,
+    delimiter,
   );
 
   if (format === 'pdf') {
@@ -307,8 +342,9 @@ export async function save(
   title: string,
   resolutionMode: ResolutionMode,
   format: FileFormat,
-  isMobile: boolean,
   assetMark: ISettings['assetMark'],
+  sourcePath: string,
+  exportFolder = '',
 ) {
   const filename = `${title.replaceAll(/\s+/g, '_')}.${format.replace(/\d$/, '')}`;
   switch (format) {
@@ -317,30 +353,16 @@ export async function save(
     case 'png0':
     case 'png1': {
       const blob: Blob = await createExportBlob(el, resolutionMode, format, assetMark);
-      if (isMobile) {
-        const filePath = await app.fileManager.getAvailablePathForAttachment(
-          filename,
-        );
-        await app.vault.createBinary(filePath, await blob.arrayBuffer());
-        new Notice(L.saveSuccess({ filePath }));
-      } else {
-        saveAs(blob, filename);
-      }
+      const filePath = await saveToVault(app, blob, resolveExportFolder(sourcePath, exportFolder), filename);
+      new Notice(L.saveSuccess({ filePath }));
 
       break;
     }
 
     case 'pdf': {
       const blob = await createExportBlob(el, resolutionMode, format, assetMark);
-      if (isMobile) {
-        const filePath = await app.fileManager.getAvailablePathForAttachment(
-          filename,
-        );
-        await app.vault.createBinary(filePath, await blob.arrayBuffer());
-        new Notice(L.saveSuccess({ filePath }));
-      } else {
-        saveAs(blob, filename);
-      }
+      const filePath = await saveToVault(app, blob, resolveExportFolder(sourcePath, exportFolder), filename);
+      new Notice(L.saveSuccess({ filePath }));
 
       break;
     }
@@ -439,7 +461,16 @@ export async function saveMultipleFiles(
       };
 
       if (split.mode === 'none') {
-        await save(app, el, file.basename, resolutionMode, format, Platform.isMobile, settings.assetMark);
+        await save(
+          app,
+          el,
+          file.basename,
+          resolutionMode,
+          format,
+          settings.assetMark,
+          file.path,
+          settings.exportFolder,
+        );
       } else {
         await saveAll(
           target,
@@ -451,6 +482,9 @@ export async function saveMultipleFiles(
           app,
           file.basename,
           settings.assetMark,
+          file.path,
+          settings.exportFolder,
+          split.delimiter,
         );
       }
     } catch (err) {
@@ -524,8 +558,10 @@ export async function saveAll(
   app: App,
   title: string,
   assetMark: ISettings['assetMark'],
+  sourcePath: string,
+  exportFolder = '',
+  delimiter = '---',
 ) {
-  const filename = `${title.replaceAll(/\s+/g, '_')}.${format === 'pdf' ? 'pdf' : 'zip'}`;
   const files = await createSplitExportFiles(
     target,
     format,
@@ -535,29 +571,15 @@ export async function saveAll(
     splitMode,
     title,
     assetMark,
+    delimiter,
   );
 
-  if (Platform.isMobile) {
-    for (const file of files) {
-      const filePath = await saveToVault(app, file.blob, file.filename);
-      new Notice(L.saveSuccess({ filePath }));
-    }
-    return;
-  }
-
-  if (format === 'pdf') {
-    const [file] = files;
-    if (!file) {
-      failSave();
-    }
-    saveAs(file.blob, file.filename);
-    return;
-  }
-
-  const zipFiles: Record<string, Uint8Array> = {};
+  const baseFolder = resolveExportFolder(sourcePath, exportFolder);
+  const destinationFolder = files.length > 1 && format !== 'pdf'
+    ? joinVaultPath(baseFolder, sanitizeFilename(title))
+    : baseFolder;
   for (const file of files) {
-    zipFiles[file.filename] = new Uint8Array(await file.blob.arrayBuffer());
+    const filePath = await saveToVault(app, file.blob, destinationFolder, file.filename);
+    new Notice(L.saveSuccess({ filePath }));
   }
-  const zipBlob = new Blob([zipSync(zipFiles, { level: 0 })], { type: 'application/zip' });
-  saveAs(zipBlob, filename);
 }

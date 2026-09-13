@@ -50,6 +50,28 @@ If your plugin does not need CSS, delete this file.
   box-sizing: border-box;
 }
 
+.export-image-preset-panel {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-secondary);
+}
+
+.export-image-preset-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-image-preset-row select,
+.export-image-preset-row input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .export-image-setting-heading {
   display: inline-block;
   padding: 1px 8px;
@@ -145,6 +167,73 @@ If your plugin does not need CSS, delete this file.
   font-size: 12px;
   color: var(--color-red);
   text-align: center;
+}
+
+@media (max-width: 700px) {
+  .export-image-preview-main {
+    margin: 4px 0 76px;
+  }
+
+  .export-image-preview-left,
+  .export-image-preview-right {
+    padding: 8px;
+  }
+
+  .export-image-preview-right {
+    overflow-y: visible;
+  }
+
+  .export-image-preset-row {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .export-image-preset-row label,
+  .export-image-preset-row select,
+  .export-image-preset-row input {
+    width: 100%;
+  }
+
+  .export-image-preset-row button {
+    min-height: 40px;
+    flex: 1 1 120px;
+  }
+
+  .export-image-preview-right .setting-item {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .export-image-preview-right .setting-item-info,
+  .export-image-preview-right .setting-item-control,
+  .export-image-preview-right .setting-item-control input,
+  .export-image-preview-right .setting-item-control select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .export-image-preview-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+    background: var(--background-primary);
+    border-top: 1px solid var(--background-modifier-border);
+  }
+
+  .export-image-preview-actions > div,
+  .export-image-preview-actions > button {
+    flex: 1 1 0;
+  }
+
+  .export-image-preview-actions button {
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+  }
 }
 
 .export-image-root .multi-select-pill-content {

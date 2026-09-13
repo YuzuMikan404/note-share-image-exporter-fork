@@ -8,21 +8,24 @@ Obsidian のノート・選択範囲・フォルダを、スマホでも読み�
 
 ## まず使うには
 
-このフォークは GitHub Release から手動インストールできます。
+Obsidian のプラグインを手動で入れたことがない場合は、**ZIP を1つダウンロードする方法**がおすすめです。
 
 1. [最新の Release](https://github.com/YuzuMikan404/note-share-image-exporter-fork/releases/latest) を開きます。
-2. `main.js`、`manifest.json`、`styles.css` をダウンロードします。ZIP を使う場合は展開してください。
-3. 対象 Vault の中に次のフォルダを作ります。
+2. **Assets** の中から `readable-note-exporter-<version>.zip` をダウンロードします。
+3. ZIP を展開します。中に `main.js`、`manifest.json`、`styles.css` が入っています。
+4. 自分の Vault の中に、次のフォルダを作ります。
 
    ```text
    <Vault>/.obsidian/plugins/readable-note-exporter/
    ```
 
-4. そのフォルダ直下に `main.js`、`manifest.json`、`styles.css` を置きます。
-5. Obsidian を再起動するか、プラグインを再読み込みします。
-6. **設定 -> コミュニティプラグイン** を開き、**Readable Note Exporter** を有効にします。
+5. 展開した3ファイルを、そのフォルダの直下へ入れます。
+6. Obsidian を再起動します。
+7. **設定 -> コミュニティプラグイン** を開き、**Readable Note Exporter** をオンにします。
 
-より詳しい導入・更新手順は [docs/INSTALL.ja.md](docs/INSTALL.ja.md) にあります。
+これでインストール完了です。ノートを右クリックして **Export to image** が表示されれば使えます。
+
+「Vault がどのフォルダかわからない」「`.obsidian` が見つからない」「プラグインが一覧に出ない」という場合は、[初心者向けの詳しいインストール手順](docs/INSTALL.ja.md) を見てください。
 
 ## 基本的な使い方
 

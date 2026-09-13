@@ -47,7 +47,7 @@ jobs:
           mkdir -p release-package
           cp main.js manifest.json styles.css release-package/
           cd release-package
-          zip -r "../note-share-image-exporter-${VERSION}.zip" main.js manifest.json styles.css
+          zip -r "../readable-note-exporter-${VERSION}.zip" main.js manifest.json styles.css
 
       - name: Publish GitHub Release
         shell: bash
@@ -60,13 +60,13 @@ jobs:
             main.js
             manifest.json
             styles.css
-            "note-share-image-exporter-${VERSION}.zip"
+            "readable-note-exporter-${VERSION}.zip"
           )
 
           if gh release view "${TAG}" >/dev/null 2>&1; then
             gh release upload "${TAG}" "${ASSETS[@]}" --clobber
           else
             gh release create "${TAG}" "${ASSETS[@]}" \
-              --title "Note Share Image Exporter ${VERSION}" \
+              --title "Readable Note Exporter ${VERSION}" \
               --generate-notes
           fi

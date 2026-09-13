@@ -11,13 +11,13 @@
 5. 次のフォルダを作ります。
 
    ```text
-   <Vault>/.obsidian/plugins/note-share-image-exporter/
+   <Vault>/.obsidian/plugins/readable-note-exporter/
    ```
 
 6. フォルダ直下が次の状態になるよう、3ファイルを置きます。
 
    ```text
-   note-share-image-exporter/
+   readable-note-exporter/
    ├─ main.js
    ├─ manifest.json
    └─ styles.css
@@ -25,7 +25,7 @@
 
 7. Obsidian を再起動します。
 8. **設定 -> コミュニティプラグイン** を開きます。
-9. コミュニティプラグインが無効なら有効化し、**Note Share Image Exporter** をオンにします。
+9. コミュニティプラグインが無効なら有効化し、**Readable Note Exporter** をオンにします。
 
 ## 動作確認
 
@@ -43,7 +43,7 @@ Markdown ノートを開き、次のいずれかを試します。
 2. 次のフォルダ内にある同名ファイルを置き換えます。
 
    ```text
-   <Vault>/.obsidian/plugins/note-share-image-exporter/
+   <Vault>/.obsidian/plugins/readable-note-exporter/
    ```
 
 3. Obsidian を再起動するか、プラグインを再読み込みします。
@@ -56,7 +56,7 @@ Markdown ノートを開き、次のいずれかを試します。
 Obsidian でプラグインを無効にしてから、次のフォルダを削除します。
 
 ```text
-<Vault>/.obsidian/plugins/note-share-image-exporter/
+<Vault>/.obsidian/plugins/readable-note-exporter/
 ```
 
 ## 保存場所の考え方

@@ -1,4 +1,4 @@
-# Note Share Image Exporter
+# Readable Note Exporter
 
 [English](README.md) | [日本語](README.ja.md) | 中文
 
@@ -6,7 +6,7 @@
 
 <img src="docs/readme/Note_Image_Exporter_Demo.png" width="650" alt="导出后的 Obsidian 笔记，包含 Mermaid、数学公式、代码、水印和作者信息">
 
-Note Share Image Exporter 会尽量保留 Obsidian 的渲染结果，因此导出的图片可以包含 Mermaid 图表、数学公式、代码块、Callout、元数据和当前笔记样式。
+Readable Note Exporter 会尽量保留 Obsidian 的渲染结果，因此导出的图片可以包含 Mermaid 图表、数学公式、代码块、Callout、元数据和当前笔记样式。
 
 ## 快速开始
 
@@ -54,7 +54,7 @@ Note Share Image Exporter 会尽量保留 Obsidian 的渲染结果，因此导�
 导出 PNG：
 
 ```bash
-obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['note-share-image-exporter'].exportFileToPath({\
+obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['readable-note-exporter'].exportFileToPath({\
   input:'Folder/Note.md',\
   output:'/Users/me/Downloads/note.png',\
   options:{\
@@ -69,7 +69,7 @@ obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['note-s
 导出 PDF：
 
 ```bash
-obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['note-share-image-exporter'].exportFileToPath({\
+obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['readable-note-exporter'].exportFileToPath({\
   input:'Folder/Note.md',\
   output:'/Users/me/Downloads/note.pdf',\
   options:{\
@@ -82,7 +82,7 @@ obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['note-s
 拆分图片导出会写入 ZIP 文件：
 
 ```bash
-obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['note-share-image-exporter'].exportFileToPath({\
+obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['readable-note-exporter'].exportFileToPath({\
   input:'Folder/Note.md',\
   output:'/Users/me/Downloads/note.zip',\
   options:{\
@@ -101,7 +101,7 @@ obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['note-s
 可以用下面的命令确认 API 是否已加载：
 
 ```bash
-obsidian vault="My Vault" eval code="typeof app.plugins.plugins['note-share-image-exporter'].exportFileToPath"
+obsidian vault="My Vault" eval code="typeof app.plugins.plugins['readable-note-exporter'].exportFileToPath"
 ```
 
 ## 平台说明
@@ -115,14 +115,14 @@ obsidian vault="My Vault" eval code="typeof app.plugins.plugins['note-share-imag
 
 ### 社区插件
 
-插件上架后，可在 Obsidian 社区插件中安装 **Note Share Image Exporter**。
+插件上架后，可在 Obsidian 社区插件中安装 **Readable Note Exporter**。
 
 ### 手动安装
 
 1. 从 [最新 release](https://github.com/YuzuMikan404/note-share-image-exporter-fork/releases/latest) 下载 `main.js`、`manifest.json` 和 `styles.css`，或下载 ZIP 后解压。
-2. 将它们放入 `<Vault>/.obsidian/plugins/note-share-image-exporter/`。
+2. 将它们放入 `<Vault>/.obsidian/plugins/readable-note-exporter/`。
 3. 重启 Obsidian 或重新加载插件。
-4. 在 **Settings** -> **Community plugins** 中启用 **Note Share Image Exporter**。
+4. 在 **Settings** -> **Community plugins** 中启用 **Readable Note Exporter**。
 
 更新时下载新 release 中的这三个文件并覆盖旧文件，然后重新加载插件即可。
 

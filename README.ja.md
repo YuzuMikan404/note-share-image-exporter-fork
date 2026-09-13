@@ -1,4 +1,4 @@
-# Note Share Image Exporter
+# Readable Note Exporter
 
 [English](README.md) | 日本語 | [中文](README.zh-CN.md)
 
@@ -15,12 +15,12 @@ Obsidian のノート・選択範囲・フォルダを、スマホでも読み�
 3. 対象 Vault の中に次のフォルダを作ります。
 
    ```text
-   <Vault>/.obsidian/plugins/note-share-image-exporter/
+   <Vault>/.obsidian/plugins/readable-note-exporter/
    ```
 
 4. そのフォルダ直下に `main.js`、`manifest.json`、`styles.css` を置きます。
 5. Obsidian を再起動するか、プラグインを再読み込みします。
-6. **設定 -> コミュニティプラグイン** を開き、**Note Share Image Exporter** を有効にします。
+6. **設定 -> コミュニティプラグイン** を開き、**Readable Note Exporter** を有効にします。
 
 より詳しい導入・更新手順は [docs/INSTALL.ja.md](docs/INSTALL.ja.md) にあります。
 
@@ -106,7 +106,7 @@ styles.css
 デスクトップ版では Obsidian 公式 CLI の `eval` から `exportFileToPath()` を呼び出せます。これはプレビューを開かず、絶対パスへ直接出力する開発・自動化向け機能です。
 
 ```bash
-obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['note-share-image-exporter'].exportFileToPath({\
+obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['readable-note-exporter'].exportFileToPath({\
   input:'Folder/Note.md',\
   output:'/Users/me/Downloads/note.png',\
   options:{format:'png0',resolutionMode:'3x',width:900,split:{mode:'none'}}\
@@ -129,7 +129,7 @@ GitHub Actions では push / pull request ごとに lint と production build �
 main.js
 manifest.json
 styles.css
-note-share-image-exporter-<version>.zip
+readable-note-exporter-<version>.zip
 ```
 
 ## クレジット

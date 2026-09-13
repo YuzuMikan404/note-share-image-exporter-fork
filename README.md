@@ -1,4 +1,4 @@
-# Note Share Image Exporter
+# Readable Note Exporter
 
 English | [日本語](README.ja.md) | [中文](README.zh-CN.md)
 
@@ -6,12 +6,12 @@ Export Obsidian notes, selections, and folders as readable images or PDFs with l
 
 <img src="docs/readme/Note_Image_Exporter_Demo.png" width="650" alt="An exported Obsidian note with Mermaid, math, code, watermark, and author info">
 
-Note Share Image Exporter keeps Obsidian rendering in the result, including Mermaid diagrams, math, code blocks, callouts, metadata, and your current note styling.
+Readable Note Exporter keeps Obsidian rendering in the result, including Mermaid diagrams, math, code blocks, callouts, metadata, and your current note styling.
 
 ## Quick start
 
 1. Install the plugin from the latest GitHub Release. See [Installation](#installation).
-2. Enable **Note Share Image Exporter** in **Settings -> Community plugins**.
+2. Enable **Readable Note Exporter** in **Settings -> Community plugins**.
 3. Right-click a note, selected text, or folder and choose the image export command.
 4. Adjust the preview and press **Save**. The result is saved into the vault.
 
@@ -85,12 +85,12 @@ This fork can be installed manually from GitHub Releases.
 3. Create this folder inside the vault:
 
    ```text
-   <Vault>/.obsidian/plugins/note-share-image-exporter/
+   <Vault>/.obsidian/plugins/readable-note-exporter/
    ```
 
 4. Put `main.js`, `manifest.json`, and `styles.css` directly in that folder.
 5. Restart Obsidian, or reload the app/plugins.
-6. Open **Settings -> Community plugins** and enable **Note Share Image Exporter**.
+6. Open **Settings -> Community plugins** and enable **Readable Note Exporter**.
 
 For Japanese step-by-step installation and update instructions, see [docs/INSTALL.ja.md](docs/INSTALL.ja.md).
 
@@ -111,7 +111,7 @@ Then restart Obsidian or reload the plugin. Your saved plugin settings are store
 The plugin exposes `exportFileToPath()` for Obsidian's official desktop `eval` command. It uses Obsidian's Markdown renderer, theme, and plugin runtime while skipping the preview modal.
 
 ```bash
-obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['note-share-image-exporter'].exportFileToPath({\
+obsidian vault="My Vault" eval code="(async()=>await app.plugins.plugins['readable-note-exporter'].exportFileToPath({\
   input:'Folder/Note.md',\
   output:'/Users/me/Downloads/note.png',\
   options:{\
@@ -151,8 +151,8 @@ GitHub Actions runs lint and production builds on pushes and pull requests. Tags
 To publish a release, first update the package/manifest version, commit the changes, then push a matching tag, for example:
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.1.1
+git push origin v1.1.1
 ```
 
 ## Credits
